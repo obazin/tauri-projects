@@ -1,0 +1,64 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(ast-grep:*)",
+            "Bash(pnpm install:*)",
+            "Bash(pnpm check)",
+            "Bash(pnpm test)",
+            "Bash(pnpm format)",
+            "Bash(pnpm format:check)",
+            "Bash(pnpm build)",
+            "Bash(pnpm exec *)",
+            "Bash(pnpm tauri *)",
+            "Bash(just check)",
+            "Bash(just check-frontend)",
+            "Bash(just check-backend)",
+            "Bash(just check-targets)",
+            "Bash(just format)",
+            "Bash(cargo check *)",
+            "Bash(cargo build *)",
+            "Bash(cargo test *)",
+            "Bash(cargo clippy *)",
+            "Bash(cargo fmt *)",
+            "Bash(cargo tree *)",
+            "Bash(git add *)",
+            "Bash(git commit *)",
+            "Bash(git switch *)",
+            "Bash(gh issue view *)",
+            "mcp__svelte__list-sections",
+            "mcp__svelte__get-documentation",
+            "mcp__svelte__svelte-autofixer",
+            "mcp__plugin_context7_context7__*"
+        ]
+    },
+    "enabledMcpjsonServers": ["svelte"],
+    "enabledPlugins": {
+        "feature-dev@claude-plugins-official": true
+    },
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "async": true,
+                        "statusMessage": "Type-checking...",
+                        "command": "jq -r '.tool_input.file_path // empty' | { read -r file; echo \"$file\" | grep -qE '\\.(svelte|ts)$' && cd \"$CLAUDE_PROJECT_DIR\" && pnpm check 2>&1 | tail -15; } 2>/dev/null || true"
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "jq -r '.tool_input.file_path // empty' | { read -r file; [ -n \"$file\" ] && echo \"$file\" | grep -qE '(Cargo\\.lock|pnpm-lock\\.yaml)$' && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Do not edit lock files directly — use cargo update or pnpm install\"}}'; } 2>/dev/null || true"
+                    }
+                ]
+            }
+        ]
+    }
+}
