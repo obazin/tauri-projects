@@ -1,6 +1,6 @@
 # tauri-projects
 
-One dev shell, and one AI agent harness, for every Tauri 2 + Svelte 5 project in `~/dev/projects`.
+One dev shell, and one AI agent harness, for every Tauri 2 + Svelte 5 + Tailwind 4 project in `~/dev/projects`.
 
 ## Why
 
@@ -35,28 +35,28 @@ Do **not** commit a `rust-toolchain.toml`. The shell creates one at the project 
 
 On every shell entry, `bootstrap-ai-harness` walks [`harness/`](harness) and creates each file the project does not have:
 
-| File                                   | What it is                                                                                                                                                         |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE.md`                            | Mandatory rules: Svelte autofixer after each `.svelte` edit, runes only, live docs, IPC review, docs current and present-tense, cross-platform facades, AST/LSP search, green checks, no lock-file edits |
-| `.mcp.json`                            | The Svelte MCP server (context7 comes from the user-level plugin)                                                                                                  |
-| `.claude/settings.json`                | Permission allow-list for pnpm, just, cargo, ast-grep and the Svelte/context7 tools; `feature-dev` plugin; a background `pnpm check` after `.svelte`/`.ts` edits; a hook refusing lock-file edits |
-| `.claude/agents/rust-ipc-reviewer.md`  | Adversarial review of the Tauri command surface: unvalidated paths, lock misuse, blocking async work, panics, unbounded input, serde contract, registration and capabilities, cross-platform behaviour |
-| `.claude/commands/implement-issue.md`  | `/implement-issue #N`: branch, plan, atomic commits, `/code-review` loop until clean                                                                               |
+| File                                  | What it is                                                                                                                                                                                                                                   |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLAUDE.md`                           | Mandatory rules: Svelte autofixer after each `.svelte` edit, runes only, live docs, IPC review, docs current and present-tense, cross-platform facades, AST/LSP search, green checks, no lock-file edits, Tailwind with semantic tokens only |
+| `.mcp.json`                           | The Svelte MCP server (context7 comes from the user-level plugin)                                                                                                                                                                            |
+| `.claude/settings.json`               | Permission allow-list for pnpm, just, cargo, ast-grep and the Svelte/context7 tools; `feature-dev` plugin; a background `pnpm check` after `.svelte`/`.ts` edits; a hook refusing lock-file edits                                            |
+| `.claude/agents/rust-ipc-reviewer.md` | Adversarial review of the Tauri command surface: unvalidated paths, lock misuse, blocking async work, panics, unbounded input, serde contract, registration and capabilities, cross-platform behaviour                                       |
+| `.claude/commands/implement-issue.md` | `/implement-issue #N`: branch, plan, atomic commits, `/code-review` loop until clean                                                                                                                                                         |
 
 `@name@` is replaced by the shell name and `@description@` by `package.json`'s `description`. The files are meant to be edited and committed: once a file exists, the project's version wins and is never touched again. The shell prints what it created.
 
 Options on `mkTauriProject` / `mkTauriShell`:
 
-| Option                 | Default | Effect                                                                                                    |
-| ---------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
-| `aiHarness`            | `true`  | Run the bootstrap on shell entry                                                                          |
-| `aiHarnessExclude`     | `[ ]`   | Paths never to create, e.g. `[ ".claude/commands/implement-issue.md" ]` for a project that removed it     |
-| `extra`                | `[ ]`   | Extra packages (`lib.pkgs.duckdb`, …)                                                                     |
-| `env`                  | `{ }`   | Extra environment variables                                                                               |
-| `hook`                 | `""`    | Extra shell hook, run before the zsh re-exec                                                              |
-| `materializeToolchain` | `true`  | Create the `rust-toolchain.toml` symlink                                                                  |
-| `materializePrettierConfig` | `true` | Link the shared `.prettierrc.json` (4-space, single quotes, width 100, no plugins) unless the project commits its own |
-| `zsh`                  | `true`  | Re-exec interactive shells into zsh                                                                       |
+| Option                      | Default | Effect                                                                                                                |
+| --------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
+| `aiHarness`                 | `true`  | Run the bootstrap on shell entry                                                                                      |
+| `aiHarnessExclude`          | `[ ]`   | Paths never to create, e.g. `[ ".claude/commands/implement-issue.md" ]` for a project that removed it                 |
+| `extra`                     | `[ ]`   | Extra packages (`lib.pkgs.duckdb`, …)                                                                                 |
+| `env`                       | `{ }`   | Extra environment variables                                                                                           |
+| `hook`                      | `""`    | Extra shell hook, run before the zsh re-exec                                                                          |
+| `materializeToolchain`      | `true`  | Create the `rust-toolchain.toml` symlink                                                                              |
+| `materializePrettierConfig` | `true`  | Link the shared `.prettierrc.json` (4-space, single quotes, width 100, no plugins) unless the project commits its own |
+| `zsh`                       | `true`  | Re-exec interactive shells into zsh                                                                                   |
 
 `bootstrap-ai-harness <name> [excluded path…]` is also on `PATH`, to recreate a file deleted by mistake.
 
@@ -65,6 +65,9 @@ Options on `mkTauriProject` / `mkTauriShell`:
 - Everything [rust-projects' shell](https://github.com/obazin/rust-projects#what-the-shell-provides) provides: pinned toolchain with rust-analyzer, cargo tools, nixd/marksman/taplo, sccache, `CARGO_HOME` in the project.
 - The standard library for macOS, Windows and Linux on x86_64 and aarch64: `cargo check --target <triple>` type-checks any `#[cfg]` branch. Crates whose build scripts probe system libraries through pkg-config (such as `libdbus-sys` on Linux) still need that platform.
 - Node 22, pnpm, typescript-language-server, vtsls, svelte-language-server, tailwindcss-language-server.
+
+Tailwind itself is a dev dependency of each project (`pnpm add -D tailwindcss @tailwindcss/vite`, `tailwindcss()` in the Vite plugins, `@import 'tailwindcss'` and a `@theme` of semantic tokens in `src/app.css`); the harness rule keeps components on those tokens.
+
 - git, just, ripgrep, fd, jq, zsh, ast-grep.
 - `run`, a wrapper for `just run`.
 - A shared `.prettierrc.json`, linked at the project root unless the project commits one (gitignore it otherwise).
