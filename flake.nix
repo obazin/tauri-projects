@@ -119,6 +119,18 @@
             WEBKIT_DISABLE_DMABUF_RENDERER = "1";
           };
 
+          # Private git dependencies over SSH. pnpm resolves a `git+ssh://`
+          # GitHub specifier over HTTPS and records that URL in the lockfile,
+          # which then fails to fetch a private repository. Rewriting the
+          # transport inside the shell keeps the recorded URL portable while
+          # git authenticates with the SSH key. Process environment, so it
+          # applies to this shell only and leaves the user's git config alone.
+          gitSshEnv = {
+            GIT_CONFIG_COUNT = "1";
+            GIT_CONFIG_KEY_0 = "url.git@github.com:.insteadOf";
+            GIT_CONFIG_VALUE_0 = "https://github.com/";
+          };
+
           # `run` launches the app in dev through the project's `just run`. A
           # wrapper on PATH rather than a shellHook alias: direnv exports
           # variables, not aliases, and the hook runs in bash before exec'ing
@@ -211,6 +223,8 @@
               # Link the shared Prettier config at the project root unless
               # the project committed its own.
               materializePrettierConfig ? true,
+              # Reach GitHub over SSH for git dependencies (see gitSshEnv).
+              gitOverSsh ? true,
               # Re-exec interactive shells into zsh.
               zsh ? true,
             }:
@@ -218,7 +232,7 @@
               inherit name toolchain;
               materializeToolchain = false;
               extra = commonTools ++ nodeTools ++ webviewTools ++ shorthands ++ [ bootstrapHarness ] ++ extra;
-              env = webviewEnv // env;
+              env = webviewEnv // lib.optionalAttrs gitOverSsh gitSshEnv // env;
               hook = ''
                 ${lib.optionalString materializeToolchain ''
                   if [ ! -e "$root/rust-toolchain.toml" ] || [ -L "$root/rust-toolchain.toml" ]; then
@@ -265,6 +279,7 @@
               nodeTools
               webviewTools
               webviewEnv
+              gitSshEnv
               shorthands
               bootstrapHarness
               mkTauriShell

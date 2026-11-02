@@ -56,6 +56,7 @@ Options on `mkTauriProject` / `mkTauriShell`:
 | `hook`                      | `""`    | Extra shell hook, run before the zsh re-exec                                                                          |
 | `materializeToolchain`      | `true`  | Create the `rust-toolchain.toml` symlink                                                                              |
 | `materializePrettierConfig` | `true`  | Link the shared `.prettierrc.json` (4-space, single quotes, width 100, no plugins) unless the project commits its own |
+| `gitOverSsh`                | `true`  | Rewrite `https://github.com/` to SSH for git inside the shell, so private git dependencies resolve (see below)        |
 | `zsh`                       | `true`  | Re-exec interactive shells into zsh                                                                                   |
 
 `bootstrap-ai-harness <name> [excluded path…]` is also on `PATH`, to recreate a file deleted by mistake.
@@ -72,10 +73,11 @@ Tailwind itself is a dev dependency of each project (`pnpm add -D tailwindcss @t
 - `run`, a wrapper for `just run`.
 - A shared `.prettierrc.json`, linked at the project root unless the project commits one (gitignore it otherwise).
 - On Linux: GTK 3, WebKitGTK 4.1, libsoup 3, glib-networking and friends, with `GIO_MODULE_DIR`, `XDG_DATA_DIRS` and `WEBKIT_DISABLE_DMABUF_RENDERER=1`.
+- Git over SSH for GitHub (`gitOverSsh`): pnpm records a `git+ssh://` GitHub dependency in the lockfile as an HTTPS URL, which cannot fetch a private repository. The shell exports `GIT_CONFIG_COUNT` / `GIT_CONFIG_KEY_0` / `GIT_CONFIG_VALUE_0` to rewrite `https://github.com/` to `git@github.com:`, so installs authenticate with the SSH key while the lockfile URL stays portable. It is process environment: the user's git config is untouched. A project setting its own `GIT_CONFIG_*` variables turns the option off.
 
 ## Library API
 
-`tauri-projects.lib.${system}` exposes `mkTauriProject`, `mkTauriShell`, `bootstrapHarness`, `toolchain`, `toolchainFile`, `crossTargets`, the tool sets (`commonTools`, `nodeTools`, `webviewTools`, `shorthands`), `webviewEnv`, `pkgs` (rust-projects' nixpkgs: everything cargo builds or links with), `frontendPkgs` (this flake's nixpkgs: Node, pnpm, language servers), and `rust` (rust-projects' lib for the same system). `tauri-projects.forEachSystem` transposes a per-system function into flake output shape.
+`tauri-projects.lib.${system}` exposes `mkTauriProject`, `mkTauriShell`, `bootstrapHarness`, `toolchain`, `toolchainFile`, `crossTargets`, the tool sets (`commonTools`, `nodeTools`, `webviewTools`, `shorthands`), `webviewEnv`, `gitSshEnv`, `pkgs` (rust-projects' nixpkgs: everything cargo builds or links with), `frontendPkgs` (this flake's nixpkgs: Node, pnpm, language servers), and `rust` (rust-projects' lib for the same system). `tauri-projects.forEachSystem` transposes a per-system function into flake output shape.
 
 ## Bumping
 
