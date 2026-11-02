@@ -64,7 +64,7 @@ Options on `mkTauriProject` / `mkTauriShell`:
 
 - Everything [rust-projects' shell](https://github.com/obazin/rust-projects#what-the-shell-provides) provides: pinned toolchain with rust-analyzer, cargo tools, nixd/marksman/taplo, sccache, `CARGO_HOME` in the project.
 - The standard library for macOS, Windows and Linux on x86_64 and aarch64: `cargo check --target <triple>` type-checks any `#[cfg]` branch. Crates whose build scripts probe system libraries through pkg-config (such as `libdbus-sys` on Linux) still need that platform.
-- Node 22, pnpm, typescript-language-server, vtsls, svelte-language-server, tailwindcss-language-server.
+- Node 24 (LTS), pnpm, typescript-language-server, vtsls, svelte-language-server, tailwindcss-language-server.
 
 Tailwind itself is a dev dependency of each project (`pnpm add -D tailwindcss @tailwindcss/vite`, `tailwindcss()` in the Vite plugins, `@import 'tailwindcss'` and a `@theme` of semantic tokens in `src/app.css`); the harness rule keeps components on those tokens.
 

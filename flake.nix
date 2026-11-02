@@ -59,7 +59,7 @@
           ];
 
           nodeTools = with pkgs; [
-            nodejs_22
+            nodejs_24
             pnpm
             typescript-language-server
             svelte-language-server
