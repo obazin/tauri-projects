@@ -2,19 +2,32 @@
   description = "Shared Tauri dev environment — rust-projects' toolchain pin plus Node, the webview stack and an AI agent harness";
 
   # The Rust pin is rust-projects', not ours: this flake adds the cross targets
-  # a Tauri app ships on and everything above the Rust layer. nixpkgs comes
-  # through rust-projects too, so a Tauri shell and a plain Rust shell resolve
-  # the same packages.
+  # a Tauri app ships on and everything above the Rust layer, from two package
+  # sets split by what links into the app binary:
+  #
+  # - rust-projects' nixpkgs (`pkgs`) for everything cargo builds or links
+  #   with — the webview stack, openssl, pkg-config — so native libraries
+  #   share one glibc and stdenv with the Rust toolchain.
+  # - this flake's own nixpkgs (`frontendPkgs`) for the frontend toolchain —
+  #   Node, pnpm and the editor language servers. Standalone executables that
+  #   never link into the binary, they follow the JavaScript ecosystem's
+  #   pace, not Rust's.
   inputs.rust-projects.url = "github:obazin/rust-projects";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
   outputs =
-    { self, rust-projects }:
+    {
+      self,
+      rust-projects,
+      nixpkgs,
+    }:
     let
       perSystem = builtins.mapAttrs (
         system: rust:
         let
           inherit (rust) pkgs;
           inherit (pkgs) lib stdenv;
+          frontendPkgs = nixpkgs.legacyPackages.${system};
 
           # ── Toolchain ────────────────────────────────────────────────────
           # rust-projects' channel and components, plus the standard library
@@ -58,9 +71,11 @@
             ast-grep
           ];
 
-          nodeTools = with pkgs; [
+          # Node LTS and a pinned pnpm major, both from `frontendPkgs`: pnpm's
+          # major decides the lockfile format every project commits.
+          nodeTools = with frontendPkgs; [
             nodejs_24
-            pnpm
+            pnpm_12
             typescript-language-server
             svelte-language-server
             tailwindcss-language-server
@@ -241,6 +256,7 @@
           lib = {
             inherit
               pkgs
+              frontendPkgs
               toolchain
               toolchainFile
               prettierConfig

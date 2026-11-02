@@ -64,7 +64,7 @@ Options on `mkTauriProject` / `mkTauriShell`:
 
 - Everything [rust-projects' shell](https://github.com/obazin/rust-projects#what-the-shell-provides) provides: pinned toolchain with rust-analyzer, cargo tools, nixd/marksman/taplo, sccache, `CARGO_HOME` in the project.
 - The standard library for macOS, Windows and Linux on x86_64 and aarch64: `cargo check --target <triple>` type-checks any `#[cfg]` branch. Crates whose build scripts probe system libraries through pkg-config (such as `libdbus-sys` on Linux) still need that platform.
-- Node 24 (LTS), pnpm, typescript-language-server, vtsls, svelte-language-server, tailwindcss-language-server.
+- Node 24 (LTS), pnpm 12, typescript-language-server, vtsls, svelte-language-server, tailwindcss-language-server.
 
 Tailwind itself is a dev dependency of each project (`pnpm add -D tailwindcss @tailwindcss/vite`, `tailwindcss()` in the Vite plugins, `@import 'tailwindcss'` and a `@theme` of semantic tokens in `src/app.css`); the harness rule keeps components on those tokens.
 
@@ -75,12 +75,13 @@ Tailwind itself is a dev dependency of each project (`pnpm add -D tailwindcss @t
 
 ## Library API
 
-`tauri-projects.lib.${system}` exposes `mkTauriProject`, `mkTauriShell`, `bootstrapHarness`, `toolchain`, `toolchainFile`, `crossTargets`, the tool sets (`commonTools`, `nodeTools`, `webviewTools`, `shorthands`), `webviewEnv`, `pkgs`, and `rust` (rust-projects' lib for the same system). `tauri-projects.forEachSystem` transposes a per-system function into flake output shape.
+`tauri-projects.lib.${system}` exposes `mkTauriProject`, `mkTauriShell`, `bootstrapHarness`, `toolchain`, `toolchainFile`, `crossTargets`, the tool sets (`commonTools`, `nodeTools`, `webviewTools`, `shorthands`), `webviewEnv`, `pkgs` (rust-projects' nixpkgs: everything cargo builds or links with), `frontendPkgs` (this flake's nixpkgs: Node, pnpm, language servers), and `rust` (rust-projects' lib for the same system). `tauri-projects.forEachSystem` transposes a per-system function into flake output shape.
 
 ## Bumping
 
 ```sh
 nix flake update rust-projects   # here, after a Rust bump in rust-projects
+nix flake update nixpkgs         # here, to move Node, pnpm and the language servers
 # then in each consumer
 nix flake update tauri-projects
 ```
